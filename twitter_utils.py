@@ -154,8 +154,15 @@ class TwitterAnalyzer():
         takes in a collection of tweet texts, clean by converting unicode and removing frills
         '''
         tw_ascii = [self.unicode2ascii(t) for t in tweets]
-        clean_tw = [self.clean_tweet(t) for t in tw_ascii]
-        return clean_tw
+        tw_precl = [self.clean_tweet(t) for t in tw_ascii]
+        tw_clean = [t[2:].lower() for t in tw_precl] # remove leading 'b ' from each string
+        return tw_clean
+
+    def remove_tracked_words(self,tweets,tracks):
+        # only handles Series for now
+        patterns = '|'.join(tracks)
+        tw_clean = tweets.str.replace(patterns, '')
+        return tw_clean
 
     def get_tweet_polarity(self, tweet):
         blob = TextBlob(tweet)
@@ -167,12 +174,13 @@ class TwitterAnalyzer():
         sub = blob.sentiment.subjectivity
         return sub
 
-    def make_word_cloud(self, text):
-        
+    def make_word_cloud(self, text, plot = True):
+        pass
+
 
 
 if __name__ == '__main__':
-    pass
+    # pass
     with open('api_tokens.pkl','rb') as f:
         [consumer_key, consumer_secret, auth_key, auth_secret] = \
             pickle.load(f)
@@ -187,22 +195,11 @@ if __name__ == '__main__':
     api = client.get_client_api()
     tweets = api.user_timeline(screen_name = 'jaboukie', count = 5)
     analyzer = TwitterAnalyzer()
-    print(dir(tweets[0]))
-    print(tweets[0].author.screen_name)
-    print(tweets[0].created_at)
-    print(tweets[0].coordinates)
+    df = pd.read_csv('elaine_mitch.csv')
+    tracks = ['mitch mcconnell', 'mitchmcconnell', 'elaine chao', 'elainechao']
+    df['text_clean'] = analyzer.process_tweet_text(df['text']) # remove the leading 'b ' for each string
+    df['polarity'] = [analyzer.get_tweet_polarity(t) for t in df['text_clean']]
+    df['subjectivity'] = [analyzer.get_tweet_subjectivity(t) for t in df['text_clean']]
+    df['text_notrack'] = analyzer.remove_tracked_words(df['text_clean'], tracks)
 
-    status = tweets[0]
-    if hasattr(status, 'retweeted_status'):
-        if hasattr(status.retweeted_status, 'extended_tweet'):
-            print('ext.retweet: ' + status.retweeted_status.extended_tweet['full_text'])
-        else:
-            print(status.retweeted_status)
-    if hasattr(status, 'extended_tweet'):
-        print('ext.text:'+status.extended_tweet['full_text'])
-    else:
-        print('text:'+status.text)
-
-    print(status.is_quote_status)
-    print(status.quoted_status.text)
-    # print(status.retweeted_status)
+    print(df['text_notrack'][0:5])
