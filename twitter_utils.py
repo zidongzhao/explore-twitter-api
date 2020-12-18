@@ -12,9 +12,10 @@ from textblob import TextBlob
 import wordcloud
 import re
 import nltk
+nltk.download('stopwords')
 import pickle
 import matplotlib.pyplot as plt
-
+import string
 
 class TwitterAuthenticater():
     '''
@@ -123,7 +124,7 @@ class TwitterAnalyzer():
 
     def unicode2ascii(self, text):
         # courtesy
-        better_text = (text.
+        better_text = (text.str.
                        replace('\\xe2\\x80\\x99', "'").
                        replace('\\xe2\\x80\\x90', '-').
                        replace('\\xe2\\x80\\x91', '-').
@@ -150,8 +151,8 @@ class TwitterAnalyzer():
                        replace('\\xe2\\x81\\xbc', "=").
                        replace('\\xe2\\x81\\xbd', "(").
                        replace('\\xe2\\x81\\xbe', ")").
-                       replace('\\xf0\\x9f\\..\\..', '').
-                       replace('\\xe3\\x81\\..','').
+                       replace('\\\\xf0\\\\x9f\\\\x..\\\\x..', '',regex = True).
+                       replace('\\\\x..\\\\x..\\\\..','',regex = True).
                        replace('\\n', ' ').
                        replace('&amp;', '&')
                        )
@@ -164,7 +165,7 @@ class TwitterAnalyzer():
         '''
         takes in a collection of tweet texts, clean by converting unicode and removing frills
         '''
-        tw_ascii = [self.unicode2ascii(t) for t in tweets]
+        tw_ascii = self.unicode2ascii(tweets)
         tw_precl = [self.clean_tweet(t) for t in tw_ascii]
         tw_clean = [t[2:].lower() for t in tw_precl]  # remove leading 'b ' from each string
         return tw_clean
@@ -194,7 +195,8 @@ class TwitterAnalyzer():
             for t in text:
                 s += ' ' + t
             text = s
-        wc = wordcloud.WordCloud().generate(text)
+        sw = list(string.ascii_letters) + nltk.corpus.stopwords.words() + ['amp']
+        wc = wordcloud.WordCloud(stopwords = sw, height = 600, width = 600).generate(text)
         if plot:
             plt.imshow(wc, interpolation="bilinear")
             plt.axis("off")
