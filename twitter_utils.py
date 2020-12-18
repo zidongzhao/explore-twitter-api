@@ -150,6 +150,8 @@ class TwitterAnalyzer():
                        replace('\\xe2\\x81\\xbc', "=").
                        replace('\\xe2\\x81\\xbd', "(").
                        replace('\\xe2\\x81\\xbe', ")").
+                       replace('\\xf0\\x9f\\..\\..', '').
+                       replace('\\xe3\\x81\\..','').
                        replace('\\n', ' ').
                        replace('&amp;', '&')
                        )
@@ -204,7 +206,7 @@ if __name__ == '__main__':
     with open('api_tokens.pkl', 'rb') as f:
         [consumer_key, consumer_secret, auth_key, auth_secret] = \
             pickle.load(f)
-            
+
     client = TwitterClient()
     api = client.get_client_api()
     tweets = api.user_timeline(screen_name='jaboukie', count=5)
