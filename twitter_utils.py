@@ -13,11 +13,14 @@ import wordcloud
 import re
 import nltk
 import pickle
+import matplotlib.pyplot as plt
+
 
 class TwitterAuthenticater():
     '''
     handle twitter authentication
     '''
+
     def __init__(self):
         pass
 
@@ -26,10 +29,12 @@ class TwitterAuthenticater():
         auth.set_access_token(auth_key, auth_secret)
         return auth
 
+
 class TwitterListener(tweepy.streaming.StreamListener):
     '''
     Very basic listener class that just prints shit to stdout
     '''
+
     def __init__(self, fetched_fname):
         self.fetched_fname = fetched_fname
 
@@ -37,7 +42,7 @@ class TwitterListener(tweepy.streaming.StreamListener):
         # overwriting the inherited on_data method
         print(data)
         try:
-            with open(self.fetched_fname,'a') as tf:
+            with open(self.fetched_fname, 'a') as tf:
                 tf.write(data)
             return True
         except BaseException as e:
@@ -51,45 +56,47 @@ class TwitterListener(tweepy.streaming.StreamListener):
             # kill the connection if reach rates limit
             return False
 
+
 class TwitterClient():
-     def __init__(self, user = None):
-         authenticater = TwitterAuthenticater()
-         self.auth = authenticater.authenticate_twitter_app()
-         self.client = tweepy.API(self.auth, wait_on_rate_limit=True)
-         self.user = user
+    def __init__(self, user=None):
+        authenticater = TwitterAuthenticater()
+        self.auth = authenticater.authenticate_twitter_app()
+        self.client = tweepy.API(self.auth, wait_on_rate_limit=True)
+        self.user = user
 
-     def get_client_api(self):
-         return self.client
+    def get_client_api(self):
+        return self.client
 
-     def get_user_timeline_tweets(self, n_tweets):
-         tweets = []
-         for tweet in tweepy.Cursor(self.client.user_timeline, id = self.user).items(n_tweets):
-             tweets.append(tweet)
-         return tweets
+    def get_user_timeline_tweets(self, n_tweets):
+        tweets = []
+        for tweet in tweepy.Cursor(self.client.user_timeline, id=self.user).items(n_tweets):
+            tweets.append(tweet)
+        return tweets
 
-     def get_friends_list(self, n_friends):
-         friends = []
-         for friend in tweepy.Cursor(self.client.friends, id = self.user).items(n_friends):
-             friends.append(friend)
-         return friends
+    def get_friends_list(self, n_friends):
+        friends = []
+        for friend in tweepy.Cursor(self.client.friends, id=self.user).items(n_friends):
+            friends.append(friend)
+        return friends
 
-     def get_home_feed_tweets(self, n_tweets):
-         tweets = []
-         for tweet in tweepy.Cursor(self.client.home_timeline).items(n_tweets):
-             tweets.append(tweet)
-         return tweets
+    def get_home_feed_tweets(self, n_tweets):
+        tweets = []
+        for tweet in tweepy.Cursor(self.client.home_timeline).items(n_tweets):
+            tweets.append(tweet)
+        return tweets
 
-     def search_past_tweets(self, query, n_tweets):
-         tweets = []
-         for tweet in tweepy.Cursor(self.client.search, q = query).items(n_tweets):
-             tweets.append(tweet)
-         return tweets
+    def search_past_tweets(self, query, n_tweets):
+        tweets = []
+        for tweet in tweepy.Cursor(self.client.search, q=query).items(n_tweets):
+            tweets.append(tweet)
+        return tweets
 
 
 class TwitterStreamer():
     '''
     Class for streaming and processing live tweets
     '''
+
     def __init__(self):
         authenticater = TwitterAuthenticater()
         self.auth = authenticater.authenticate_twitter_app()
@@ -99,15 +106,17 @@ class TwitterStreamer():
         stream = tweepy.Stream(self.auth, listener)
         stream.filter(track=tracks)
 
+
 class TwitterAnalyzer():
     '''
     Functions for analyzing and categorizing tweets
     '''
+
     def __init__(self):
         pass
 
     def tweets_to_df(self, tweets):
-        df= pd.DataFrame(data = [tweet.text for tweet in tweets],columns=['text'])
+        df = pd.DataFrame(data=[tweet.text for tweet in tweets], columns=['text'])
         df['id'] = [tweet.id for tweet in tweets]
         # etc
         return df
@@ -115,54 +124,57 @@ class TwitterAnalyzer():
     def unicode2ascii(self, text):
         # courtesy
         better_text = (text.
-            replace('\\xe2\\x80\\x99', "'").
-            replace('\\xe2\\x80\\x90', '-').
-            replace('\\xe2\\x80\\x91', '-').
-            replace('\\xe2\\x80\\x92', '-').
-            replace('\\xe2\\x80\\x93', '-').
-            replace('\\xe2\\x80\\x94', '-').
-            replace('\\xe2\\x80\\x94', '-').
-            replace('\\xe2\\x80\\x98', "'").
-            replace('\\xe2\\x80\\x9b', "'").
-            replace('\\xe2\\x80\\x9c', '"').
-            replace('\\xe2\\x80\\x9c', '"').
-            replace('\\xe2\\x80\\x9d', '"').
-            replace('\\xe2\\x80\\x9e', '"').
-            replace('\\xe2\\x80\\x9f', '"').
-            replace('\\xe2\\x80\\xa6', '...').#
-            replace('\\xe2\\x80\\xb2', "'").
-            replace('\\xe2\\x80\\xb3', "'").
-            replace('\\xe2\\x80\\xb4', "'").
-            replace('\\xe2\\x80\\xb5', "'").
-            replace('\\xe2\\x80\\xb6', "'").
-            replace('\\xe2\\x80\\xb7', "'").
-            replace('\\xe2\\x81\\xba', "+").
-            replace('\\xe2\\x81\\xbb', "-").
-            replace('\\xe2\\x81\\xbc', "=").
-            replace('\\xe2\\x81\\xbd', "(").
-            replace('\\xe2\\x81\\xbe', ")").
-            replace('\\n',' ').
-            replace('&amp;', '&')
-            )
+                       replace('\\xe2\\x80\\x99', "'").
+                       replace('\\xe2\\x80\\x90', '-').
+                       replace('\\xe2\\x80\\x91', '-').
+                       replace('\\xe2\\x80\\x92', '-').
+                       replace('\\xe2\\x80\\x93', '-').
+                       replace('\\xe2\\x80\\x94', '-').
+                       replace('\\xe2\\x80\\x94', '-').
+                       replace('\\xe2\\x80\\x98', "'").
+                       replace('\\xe2\\x80\\x9b', "'").
+                       replace('\\xe2\\x80\\x9c', '"').
+                       replace('\\xe2\\x80\\x9c', '"').
+                       replace('\\xe2\\x80\\x9d', '"').
+                       replace('\\xe2\\x80\\x9e', '"').
+                       replace('\\xe2\\x80\\x9f', '"').
+                       replace('\\xe2\\x80\\xa6', '...').
+                       replace('\\xe2\\x80\\xb2', "'").
+                       replace('\\xe2\\x80\\xb3', "'").
+                       replace('\\xe2\\x80\\xb4', "'").
+                       replace('\\xe2\\x80\\xb5', "'").
+                       replace('\\xe2\\x80\\xb6', "'").
+                       replace('\\xe2\\x80\\xb7', "'").
+                       replace('\\xe2\\x81\\xba', "+").
+                       replace('\\xe2\\x81\\xbb', "-").
+                       replace('\\xe2\\x81\\xbc', "=").
+                       replace('\\xe2\\x81\\xbd', "(").
+                       replace('\\xe2\\x81\\xbe', ")").
+                       replace('\\n', ' ').
+                       replace('&amp;', '&')
+                       )
         return better_text
 
     def clean_tweet(self, tweet):
         return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
 
-    def process_tweet_text(self,tweets):
+    def process_tweet_text(self, tweets):
         '''
         takes in a collection of tweet texts, clean by converting unicode and removing frills
         '''
         tw_ascii = [self.unicode2ascii(t) for t in tweets]
         tw_precl = [self.clean_tweet(t) for t in tw_ascii]
-        tw_clean = [t[2:].lower() for t in tw_precl] # remove leading 'b ' from each string
+        tw_clean = [t[2:].lower() for t in tw_precl]  # remove leading 'b ' from each string
         return tw_clean
 
-    def remove_tracked_words(self,tweets,tracks):
+    def remove_tracked_words(self, tweets, tracks):
         # only handles Series for now
-        patterns = '|'.join(tracks)
-        tw_clean = tweets.str.replace(patterns, '')
-        return tw_clean
+        try:
+            patterns = '|'.join(tracks)
+            tw_clean = tweets.str.replace(patterns, '')
+            return tw_clean
+        except:
+            print('tweets must be pandas Series')
 
     def get_tweet_polarity(self, tweet):
         blob = TextBlob(tweet)
@@ -174,32 +186,26 @@ class TwitterAnalyzer():
         sub = blob.sentiment.subjectivity
         return sub
 
-    def make_word_cloud(self, text, plot = True):
-        pass
-
-
+    def make_word_cloud(self, text, plot=True):
+        if isinstance(text, pd.core.series.Series):
+            s = ''
+            for t in text:
+                s += ' ' + t
+            text = s
+        wc = wordcloud.WordCloud().generate(text)
+        if plot:
+            plt.imshow(wc, interpolation="bilinear")
+            plt.axis("off")
+            plt.show()
+        return wc
 
 if __name__ == '__main__':
     # pass
-    with open('api_tokens.pkl','rb') as f:
+    with open('api_tokens.pkl', 'rb') as f:
         [consumer_key, consumer_secret, auth_key, auth_secret] = \
             pickle.load(f)
-    #
-    # tracks = ['joseph epstein']
-    # fetched_fname = 'stream_test.txt'
-
-    # tstream = TwitterStreamer()
-    # tstream.stream_tweets(fetched_fname, tracks)
-
+            
     client = TwitterClient()
     api = client.get_client_api()
-    tweets = api.user_timeline(screen_name = 'jaboukie', count = 5)
+    tweets = api.user_timeline(screen_name='jaboukie', count=5)
     analyzer = TwitterAnalyzer()
-    df = pd.read_csv('elaine_mitch.csv')
-    tracks = ['mitch mcconnell', 'mitchmcconnell', 'elaine chao', 'elainechao']
-    df['text_clean'] = analyzer.process_tweet_text(df['text']) # remove the leading 'b ' for each string
-    df['polarity'] = [analyzer.get_tweet_polarity(t) for t in df['text_clean']]
-    df['subjectivity'] = [analyzer.get_tweet_subjectivity(t) for t in df['text_clean']]
-    df['text_notrack'] = analyzer.remove_tracked_words(df['text_clean'], tracks)
-
-    print(df['text_notrack'][0:5])
